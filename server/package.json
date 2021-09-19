@@ -2,16 +2,36 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
+  "main": "src/api.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon src/api.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
-    "nodemon": "^2.0.12"
+    "@types/axios": "^0.14.0",
+    "@types/express": "^4.17.13",
+    "axios": "^0.21.4",
+    "express": "^4.17.1"
+  },
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx"
+  ],
+  "transform": {
+    "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+  },
+  "testPathIgnorePatterns": [
+    "/testHelpers/"
+  ],
+  "devDependencies": {
+    "@types/node": "^16.9.3",
+    "nodemon": "^2.0.12",
+    "ts-node": "^10.2.1",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.3"
   }
 }
