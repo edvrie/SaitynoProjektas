@@ -31,7 +31,7 @@ const posts = [
     {
         id: "751213",
         user: "Tom",
-        text: "Is gae"
+        text: "How do I close VIM?"
     }
 ];
 
