@@ -35,6 +35,11 @@ const posts = [
     }
 ];
 
+// DEFAULT 
+app.get('/', (req, res) => {
+    res.send('Hello!');
+});
+
 // GET LISTED
 app.get('/themes', (req, res) => {
     res.json(themes);
