@@ -1,5 +1,4 @@
 import express from 'express';
-import { json } from 'stream/consumers';
 
 // IMPORTTANT: THIS MIGHT BREAK SINCE IT CAN NO LONGER FIND THE IMPORT
 // IN THAT CASE CHANGE IMPORT TO REQUIRE 
@@ -131,7 +130,8 @@ app.post('/api/themes', (req, res) => {
     try {
         const reqBody = req.body;
         themes.push(reqBody);
-        res.status(200).send(`Post successful: \n ${JSON.stringify(themes)}`);
+        // res.status(200).send(`Post successful: \n ${JSON.stringify(themes)}`);
+        res.status(200).send({...themes, "status": "ok"})
     } catch {
         res.status(400).send('Post failed. Please try again.');
     };
@@ -141,7 +141,8 @@ app.post('/api/themes/:id/posts', (req, res) => {
     try {
         const reqBody = req.body;
         posts.push(reqBody);
-        res.status(200).send(`Post successful: \n ${JSON.stringify(posts)}`);
+        // res.status(200).send(`Post successful: \n ${JSON.stringify(posts)}`);
+        res.status(200).send({...posts, "status": "ok"})
     } catch {
         res.status(400).send('Post failed. Please try again.');
     };
@@ -151,7 +152,8 @@ app.post('/api/themes/:themeId/posts/:postId/comments', (req, res) => {
     try {
         const reqBody = req.body;
         comments.push(reqBody);
-        res.status(200).send(`Post successful \n ${JSON.stringify(comments)}`);
+        // res.status(200).send(`Post successful \n ${JSON.stringify(comments)}`);
+        res.status(200).send({...comments, "status": "ok"})
     } catch {
         res.status(400).send('Post failed. Please try again.');
     };
