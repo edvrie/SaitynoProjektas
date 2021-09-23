@@ -1,4 +1,5 @@
 import express from 'express';
+import { json } from 'stream/consumers';
 
 // IMPORTTANT: THIS MIGHT BREAK SINCE IT CAN NO LONGER FIND THE IMPORT
 // IN THAT CASE CHANGE IMPORT TO REQUIRE 
@@ -50,25 +51,25 @@ app.get('/', (req, res) => {
 });
 
 // GET LISTED
-app.get('/themes', (req, res) => {
+app.get('/api/themes', (req, res) => {
     try{
-        res.json(themes);
+        themes ? res.json(themes) : res.sendStatus(404);
     } catch {
         res.status(404).send('Get failed. Please try again.');
     };
 });
 
-app.get('/themes/:id/posts', (req, res) => {
+app.get('/api/themes/:id/posts', (req, res) => {
     try {
-        res.json(posts);
+        posts ? res.json(posts) : res.sendStatus(404);
     } catch {
         res.status(404).send('Get failed. Please try again.');
     };
 });
 
-app.get('/themes/:id/posts/:id/comments', (req, res) => {
+app.get('/api/themes/:id/posts/:id/comments', (req, res) => {
     try {
-        res.json(comments);
+        comments ? res.json(comments) : res.sendStatus(404);
     } catch {
         res.status(404).send('Get failed. Please try again.');
     };
@@ -95,116 +96,110 @@ app.get('/themes/:id/posts/:id/comments', (req, res) => {
 // });
 
 // GET BY ID
-app.get('/themes/:id', (req, res) => {
+app.get('/api/themes/:id', (req, res) => {
     try {
         const id = req.params.id;
-        const theme = themes.filter((theme) => theme.id === parseInt(id));
-        res.send(theme);
+        const theme = themes.find((theme) => theme.id === parseInt(id));
+        theme ? res.send(theme) : res.sendStatus(404);
     } catch {
-        res.status(404).send('Get failed. Please try again.');
+        res.status(400).send('Get failed. Please try again.');
     };
 });
 
-app.get('/themes/:id/posts/:id', (req, res) => {
+app.get('/api/themes/:themeId/posts/:postId', (req, res) => {
     try {
-        const id = req.params.id;
-        const post = posts.filter((post) => post.id === id);
-        res.status(200).send({post});
+        const id = req.params.postId;
+        const post = posts.find((post) => post.id === id);
+        post ? res.status(200).send({post}) : res.sendStatus(404)
     } catch {
-        res.status(404).send('Get failed. Please try again.');
+        res.status(400).send('Get failed. Please try again.');
     };
 });
 
-app.get('/themes/:id/posts/:id/comments/:id', (req, res) => {
+app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => {
     try {
-        const id = req.params.id;
-        const comment = comments.filter((comment) => comment.id === id);
-        res.status(200).send(comment);
+        const id = req.params.commentId;
+        const comment = comments.find((comment) => comment.id === id);
+        comment ? res.status(200).send(comment) : res.sendStatus(404);
     } catch {
-        res.status(404).send('Get failed. Please try again.');
+        res.status(400).send('Get failed. Please try again.');
     };
 });
 
 // POST
-app.post('/themes', (req, res) => {
+app.post('/api/themes', (req, res) => {
     try {
         const reqBody = req.body;
         themes.push(reqBody);
-        res.status(200).send(`Post successful: \n ${themes}`);
+        res.status(200).send(`Post successful: \n ${JSON.stringify(themes)}`);
     } catch {
-        res.status(404).send('Post failed. Please try again.');
+        res.status(400).send('Post failed. Please try again.');
     };
 });
 
-app.post('/themes/posts', (req, res) => {
+app.post('/api/themes/:id/posts', (req, res) => {
     try {
         const reqBody = req.body;
         posts.push(reqBody);
-        res.status(200).send(`Post successful: \n ${posts.filter((post) => post === reqBody)
-            .map((post) =>
-            'ID: ' +  post.id + ';\nText: ' + post.text + ';\nName: ' + post.user)}`);
+        res.status(200).send(`Post successful: \n ${JSON.stringify(posts)}`);
     } catch {
-        res.status(404).send('Post failed. Please try again.');
+        res.status(400).send('Post failed. Please try again.');
     };
 });
 
-app.post('themes/posts/comments', (req, res) => {
+app.post('/api/themes/:themeId/posts/:postId/comments', (req, res) => {
     try {
         const reqBody = req.body;
         comments.push(reqBody);
-        res.status(200).send(`Post successful \n ${comments}`);
+        res.status(200).send(`Post successful \n ${JSON.stringify(comments)}`);
     } catch {
-        res.status(404).send('Post failed. Please try again.');
+        res.status(400).send('Post failed. Please try again.');
     };
 });
 
 // PUT
-app.put('/themes/:id', (req, res) => {
+app.patch('/api/themes/:id', (req, res) => {
     try {
         const id = req.params.id;
         const data = req.body;
         const index = themes.findIndex((theme) => theme.id === parseInt(id));
-        //themes[themeIndex] = data;
         if (themes[index] !== undefined) {
             themes[index] = data;
             res.status(200).send(themes[index]);
         } else {
-            themes.push(data);
-            res.status(201).send(themes[themes.length - 1]);
+            res.sendStatus(404);
         };
     } catch {
         res.status(400).send('Put failed. Please try again.');
     };
 });
 
-app.put('/themes/posts/:id', (req, res) => {
+app.patch('/api/themes/:themeId/posts/:postId', (req, res) => {
     try {
-        const id = req.params.id;
+        const id = req.params.postId;
         const data = req.body;
         const index = posts.findIndex((post) => post.id === id);
         if (posts[index] !== undefined) {
             posts[index] = data;
             res.status(200).send(posts[index]);
         } else {
-            posts.push(data);
-            res.status(201).send(posts[posts.length - 1]);
+            res.sendStatus(404);
         }
     } catch {
         res.status(400).send('Put failed. Please try again.');
     };
 });
 
-app.put('/themes/posts/comments/:id', (req, res) => {
+app.patch('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => {
     try {
-        const id = req.params.id;
+        const id = req.params.commentId;
         const data = req.body;
         const index = comments.findIndex((comment) => comment.id === id);
         if (comments[index] !== undefined) {
             comments[index] = data;
             res.status(200).send(comments[index]);
         } else {
-            comments.push(data);
-            res.status(201).send(comments[comments.length - 1]);
+            res.sendStatus(404);
         }
     } catch {
         res.status(400).send('Put failed. Please try again.');
@@ -212,33 +207,33 @@ app.put('/themes/posts/comments/:id', (req, res) => {
 });
 
 // DELETE
-app.delete('/themes/:id', (req, res) => {
+app.delete('/api/themes/:id', (req, res) => {
     try{
         const id = req.params.id;
         const entity = themes.find((theme) => theme.id === parseInt(id));
-        res.status(200).send(`Deleted entity: \n ${JSON.stringify(entity)}`);
+        entity ? res.sendStatus(204) : res.sendStatus(404);
     } catch {
-        res.status(404).send('Delete failed. Please try again.');
+        res.status(400).send('Delete failed. Please try again.');
     }
 });
 
-app.delete('/themes/posts/:id', (req, res) => {
+app.delete('/api/themes/:themeId/posts/:postId', (req, res) => {
     try {
-        const id = req.params.id;
+        const id = req.params.postId;
         const entity = posts.find((post) => post.id === id);
-        res.status(200).send(`Deleted entity: \n ${JSON.stringify(entity)}`);
+        entity ? res.sendStatus(204) : res.sendStatus(404);
     } catch {
-        res.status(404).send('Delete failed. Please try again.');
+        res.status(400).send('Delete failed. Please try again.');
     };
 });
 
-app.delete('themes/posts/comments/:id', (req, res) => {
+app.delete('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => {
     try {
-        const id = req.params.id;
+        const id = req.params.commentId;
         const entity = comments.find((comment) => comment.id === id);
-        res.status(200).send(`Deleted entity: \n ${entity}`);
+        entity ? res.sendStatus(204) : res.sendStatus(404);
     } catch {
-        res.status(404).send('Delete failed. Please try again.');
+        res.status(400).send('Delete failed. Please try again.');
     };
 });
 
