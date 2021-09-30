@@ -28,7 +28,7 @@
     "/testHelpers/"
   ],
   "devDependencies": {
-    "@types/node": "^16.9.3",
+    "@types/node": "^16.10.2",
     "nodemon": "^2.0.12",
     "ts-node": "^10.2.1",
     "tslib": "^2.3.1",
