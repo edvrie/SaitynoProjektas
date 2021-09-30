@@ -224,7 +224,10 @@ app.patch('/api/themes/:id', (req, res) => {
             themes[index] = data;
             res.status(200).send(themes[index]);
         } else {
-            res.sendStatus(404);
+            res.status(404).send({
+                status: 404,
+                error: 'Not found.'
+            });
         };
     } catch {
         res.status(400).send({
@@ -245,7 +248,10 @@ app.patch('/api/themes/:themeId/posts/:postId', (req, res) => {
             posts[index] = data;
             res.status(200).send(posts[index]);
         } else {
-            res.sendStatus(404);
+            res.status(404).send({
+                status: 404,
+                error: 'Not found.'
+            });
         }
     } catch {
         res.status(400).send({
