@@ -344,7 +344,7 @@ app.delete('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) 
 app.use((req, res, next) => {
     res.status(404).send({
         status: 404,
-        error: "Not found"
+        error: "Page not found"
     });
 });
 
