@@ -58,7 +58,6 @@ const comments = [
 
 const parseIds = (id: string) => {
     const idInt = Number(id);
-    console.log(idInt)
     if (isNaN(idInt)) {
         throw new Error("Invalid URL");
     }
