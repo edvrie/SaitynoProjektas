@@ -174,7 +174,7 @@ app.post('/api/themes', (req, res) => {
     try {
         const reqBody = req.body;
         themes.push(reqBody);
-        res.status(201).send({reqBody, "status": "ok"})
+        res.status(201).send({...reqBody, "status": "ok"})
     } catch {
         res.status(400).send({
             status: 400,
@@ -188,7 +188,7 @@ app.post('/api/themes/:id/posts', (req, res) => {
         parseIds(req.params.id);
         const reqBody = req.body;
         posts.push(reqBody);
-        res.status(201).send({reqBody, "status": "ok"})
+        res.status(201).send({...reqBody, "status": "ok"})
     } catch {
         res.status(400).send({
             status: 400,
@@ -203,7 +203,7 @@ app.post('/api/themes/:themeId/posts/:postId/comments', (req, res) => {
         parseIds(req.params.postId);
         const reqBody = req.body;
         comments.push(reqBody);
-        res.status(201).send({reqBody, "status": "ok"})
+        res.status(201).send({...reqBody, "status": "ok"})
     } catch {
         res.status(400).send({
             status: 400,
