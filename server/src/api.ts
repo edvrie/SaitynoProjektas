@@ -1,10 +1,32 @@
-import e from 'express';
 import express from 'express';
+import dotenv from 'dotenv';
+import { connectDB, disconnectDB } from '../config/db';
+import userModel from '../schemas/user';
+import themeModel from '../schemas/theme';
+import postModel from '../schemas/post';
+import commentModel from '../schemas/comment';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { checkAuth } from './auth';
+import { getCurrentUser } from '../utils/userInfoGetter';
+import { apiErrorHelper } from '../utils/errorHelper';
+import ApiError from '../utils/ApiError';
+import { permissionCheckGeneric, permissionCheckThemes, permissionCheckPosts, permissionCheckComments, permissionCheckAdmin, USER_ROLES } from '../utils/roleHelper';
+
+//Config
+dotenv.config({ path: './config/config.env' });
 
 // IMPORTTANT: THIS MIGHT BREAK SINCE IT CAN NO LONGER FIND THE IMPORT
 // IN THAT CASE CHANGE IMPORT TO REQUIRE 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+
+interface USER {
+    username: string;
+    userId: string;
+    userRole: string;
+    auth: string;
+}
 
 // JSON parse
 app.use(express.json());
@@ -14,12 +36,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use((err, req, res, next) => {
-    res.status(400).send({
-        status: 400,
-        error: err.message
-    });
-});
+connectDB();
 
 const themes = [
     {
@@ -63,7 +80,55 @@ const parseIds = (id: string) => {
     }
 };
 
-// DEFAULT 
+// AUTH 
+app.post('/signup', async (req, res, next) => {
+    const hashedPswrd = await bcrypt.hash(req.body.password, 10);
+    const user = new userModel({
+        username: req.body.username,
+        email: req.body.email,
+        password: hashedPswrd,
+        userRole: req.body.userRole || "SIMPLE_USER"
+    });
+    try{
+        await user.save();
+        res.status(201).send(user);
+    } catch (err) {
+        next(ApiError.badRequest("Something went wrong :("));
+    };
+});
+
+app.post('/login', async (req, res, next) => {
+    const user = await userModel.findOne({
+        email: req.body.email
+    });
+    if (user){
+        await bcrypt.compare(req.body.password, user.password, (error, result) => {
+            if (error) {
+                next(ApiError.badRequest("Login failed"));
+                return;
+            }
+            if (result) {
+                const token = jwt.sign({
+                    email: user.email,
+                    userId: user._id,
+                    username: user.username
+                },
+                process.env.JWT_KEY,
+                {
+                    expiresIn: "1h"
+                });
+                return res.status(201).json({
+                    message: "Login successful",
+                    authToken: token
+                })
+            }
+        });
+    } else {
+        next(ApiError.badRequest("Login failed"));
+        return;
+    };
+});
+
 app.get('/', (req, res) => {
     res.send('Hello!');
 });
@@ -170,182 +235,135 @@ app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => 
 });
 
 // POST
-app.post('/api/themes', (req, res) => {
+app.post('/api/themes', checkAuth, permissionCheckGeneric,  async (req, res, next) => {
     try {
-        const reqBody = req.body;
-        themes.push(reqBody);
-        res.status(201).send({...reqBody, "status": "ok"})
+        const theme = new themeModel({ 
+            name: req.body.name,
+            userId: req['userData'].userId
+         });
+        await theme.save(theme);
+        res.status(201).send({theme, "status": "ok"});
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
-app.post('/api/themes/:id/posts', (req, res) => {
+app.post('/api/themes/:id/posts', checkAuth, permissionCheckGeneric, async (req, res, next) => {
     try {
-        parseIds(req.params.id);
-        const reqBody = req.body;
-        posts.push(reqBody);
-        res.status(201).send({...reqBody, "status": "ok"})
-    } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
+        const post = new postModel({
+            title: req.body.title,
+            themeId: req.params.id,
+            content: req.body.content,
+            userId: req['userData'].userId
         });
+        await post.save(post);
+        res.status(201).send({post, "status": "ok"});
+        return;
+    } catch {
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
-app.post('/api/themes/:themeId/posts/:postId/comments', (req, res) => {
+app.post('/api/themes/:themeId/posts/:postId/comments', checkAuth, permissionCheckGeneric, async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        const reqBody = req.body;
-        comments.push(reqBody);
-        res.status(201).send({...reqBody, "status": "ok"})
-    } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
+        const comment = new commentModel({
+            userId: req['userData'].userId,
+            themeId: req.params.themeId,
+            postId: req.params.postId,
+            content: req.body.content
         });
+        await comment.save(comment);
+        res.status(201).send({comment, "status": "ok"});
+        return;
+    } catch {
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
 // PUT
-app.patch('/api/themes/:id', (req, res) => {
+app.patch('/api/themes/:id', checkAuth, permissionCheckThemes, async (req, res, next) => {
     try {
-        parseIds(req.params.id);
-        const id = req.params.id;
-        const data = req.body;
-        const index = themes.findIndex((theme) => theme.id === parseInt(id));
-        if (themes[index] !== undefined) {
-            themes[index] = data;
-            res.status(200).send(themes[index]);
-        } else {
-            res.status(404).send({
-                status: 404,
-                error: 'Not found.'
-            });
-        };
+        await themeModel.updateOne({ _id: req.params.id }, req.body);
+        res.status(200).json("Ok");
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
-app.patch('/api/themes/:themeId/posts/:postId', (req, res) => {
+app.patch('/api/themes/:themeId/posts/:postId', checkAuth, permissionCheckPosts, async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        const id = req.params.postId;
-        const data = req.body;
-        const index = posts.findIndex((post) => post.id === id);
-        if (posts[index] !== undefined) {
-            posts[index] = data;
-            res.status(200).send(posts[index]);
-        } else {
-            res.status(404).send({
-                status: 404,
-                error: 'Not found.'
-            });
-        }
+        await postModel.updateOne({ _id: req.params.postId }, req.body);
+        res.status(200).json("Ok");
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
-app.patch('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => {
+app.patch('/api/themes/:themeId/posts/:postId/comments/:commentId', checkAuth, permissionCheckComments, async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        parseIds(req.params.commentId);
-        const id = req.params.commentId;
-        const data = req.body;
-        const index = comments.findIndex((comment) => comment.id === id);
-        if (comments[index] !== undefined) {
-            comments[index] = data;
-            res.status(200).send(comments[index]);
-        } else {
-            res.status(404).send({
-                status: 404,
-                error: 'Not found.'
-            });
-        }
+       await commentModel.updateOne({ _id: req.params.commentId }, req.body);
+       res.status(200).json("Ok");
+       return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong :(("));
+        return;
     };
 });
 
 // DELETE
-app.delete('/api/themes/:id', (req, res) => {
+app.delete('/api/themes/:id', checkAuth, permissionCheckThemes, async (req, res, next) => {
     try{
-        parseIds(req.params.id);
-        const id = req.params.id;
-        const entity = themes.find((theme) => theme.id === parseInt(id));
-        entity ? res.sendStatus(204) : res.status(404).send({
-            status: 404,
-            error: "Not found"
-        });
+        await themeModel.deleteOne({ _id: req.params.id });
+        await postModel.deleteMany({ themeId: req.params.id });
+        await commentModel.deleteMany({ themeId: req.params.id });
+        res.status(200).json("Ok");
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong"));
+        return;
     }
 });
 
-app.delete('/api/themes/:themeId/posts/:postId', (req, res) => {
+app.delete('/api/themes/:themeId/posts/:postId', checkAuth, permissionCheckPosts, async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        const id = req.params.postId;
-        const entity = posts.find((post) => post.id === id);
-        entity ? res.sendStatus(204) : res.status(404).send({
-            status: 404,
-            error: "Not found"
-        });
+        await postModel.deleteOne({ _id: req.params.postId, themeId: req.params.themeId });
+        await commentModel.deleteMany({ postId: req.params.postId, themeId: req.params.themeId });
+        res.status(200).json("Ok");
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest(":("));
+        return;
     };
 });
 
-app.delete('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => {
+app.delete('/api/themes/:themeId/posts/:postId/comments/:commentId', checkAuth, permissionCheckComments, async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        parseIds(req.params.commentId);
-        const id = req.params.commentId;
-        const entity = comments.find((comment) => comment.id === id);
-        entity ? res.sendStatus(204) : res.status(404).send({
-            status: 404,
-            error: "Not found"
-        });
+        await commentModel.deleteOne({ _id: req.params.commentId, themeId: req.params.themeId, postId: req.params.postId });
+        res.status(200).json("Ok");
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest(":("));
+        return;
     };
 });
 
+//FOR PAGES NOT DEFINED IN THE API
 app.use((req, res, next) => {
     res.status(404).send({
         status: 404,
         error: "Page not found"
     });
 });
+
+app.use(apiErrorHelper);
 
 // SET SERVER TO LISTEN TO PORT 3000
 app.listen(port, ()=> console.log(`Server listening at port ${port}`));
