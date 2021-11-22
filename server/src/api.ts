@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { connectDB, disconnectDB } from '../config/db';
+import { connectDB } from '../config/db';
 import userModel from '../schemas/user';
 import themeModel from '../schemas/theme';
 import postModel from '../schemas/post';
@@ -8,7 +8,6 @@ import commentModel from '../schemas/comment';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { checkAuth } from './auth';
-import { getCurrentUser } from '../utils/userInfoGetter';
 import { apiErrorHelper } from '../utils/errorHelper';
 import ApiError from '../utils/ApiError';
 import { permissionCheckGeneric, permissionCheckThemes, permissionCheckPosts, permissionCheckComments, permissionCheckAdmin, USER_ROLES } from '../utils/roleHelper';
@@ -134,48 +133,35 @@ app.get('/', (req, res) => {
 });
 
 // GET LISTED
-app.get('/api/themes', (req, res) => {
+app.get('/api/themes', async (req, res, next) => {
     try{
-        themes ? res.json(themes) : res.status(404).send({
-            status: 404,
-            error: "Not found"
-        });
+        const themes = await themeModel.find({});
+        res.status(200).json(themes);
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest(":("));
+        return;
     };
 });
 
-app.get('/api/themes/:id/posts', (req, res) => {
+app.get('/api/themes/:id/posts', async (req, res, next) => {
     try {
-        parseIds(req.params.id);
-        posts ? res.json(posts) : res.status(404).send({
-            status: 404,
-            error: "Not found"
-        });
+        const posts = await postModel.find({ themeId: req.params.id });
+        res.status(200).json(posts);
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest(":("));
+        return;
     };
 });
 
-app.get('/api/themes/:themeId/posts/:postId/comments', (req, res) => {
+app.get('/api/themes/:themeId/posts/:postId/comments', async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        comments ? res.json(comments) : res.status(404).send({
-            status: 404,
-            error: "Not found"
-        });
+        const comments = await commentModel.find({ themeId: req.params.themeId, postId: req.params.postId });
+        res.status(200).json(comments);
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest(":("));
+        return;
     };
 });
 
