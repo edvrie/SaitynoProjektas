@@ -143,7 +143,7 @@ app.get('/api/themes', (req, res) => {
     } catch {
         res.status(400).send({
             status: 400,
-            error: "Bad request"
+            error: "Invalid URL"
         });
     };
 });
@@ -158,7 +158,7 @@ app.get('/api/themes/:id/posts', (req, res) => {
     } catch {
         res.status(400).send({
             status: 400,
-            error: "Bad request"
+            error: "Invalid URL"
         });
     };
 });
@@ -174,7 +174,7 @@ app.get('/api/themes/:themeId/posts/:postId/comments', (req, res) => {
     } catch {
         res.status(400).send({
             status: 400,
-            error: "Bad request"
+            error: "Invalid URL"
         });
     };
 });
@@ -192,7 +192,7 @@ app.get('/api/themes/:id', (req, res) => {
     } catch {
         res.status(400).send({
             status: 400,
-            error: "Bad request"
+            error: "Invalid URL"
         });
     };
 });
@@ -210,7 +210,7 @@ app.get('/api/themes/:themeId/posts/:postId', (req, res) => {
     } catch {
         res.status(400).send({
             status: 400,
-            error: "Bad request"
+            error: "Invalid URL"
         });
     };
 });
@@ -229,7 +229,7 @@ app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => 
     } catch {
         res.status(400).send({
             status: 400,
-            error: "Bad request"
+            error: "Invalid URL"
         });
     };
 });
