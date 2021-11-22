@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/api.js",
   "scripts": {
-    "start": "nodemon src/api.ts"
+    "start": "nodemon src/api.ts",
+    "run prod": "src/api.ts"
   },
   "keywords": [],
   "author": "",
