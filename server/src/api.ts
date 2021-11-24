@@ -166,57 +166,43 @@ app.get('/api/themes/:themeId/posts/:postId/comments', async (req, res, next) =>
 });
 
 // GET BY ID
-app.get('/api/themes/:id', (req, res) => {
+app.get('/api/themes/:id', async (req, res, next) => {
     try {
-        parseIds(req.params.id);
-        const id = req.params.id;
-        const theme = themes.find((theme) => theme.id === parseInt(id));
-        theme ? res.send(theme) : res.status(404).send({
-            status: 404,
-            error: "Not found"
+        const theme = themeModel.findOne({ _id: req.params.id });
+        theme ? res.status(200).json(theme) : (() => {
+            next(ApiError.notFound("Not found"));
+            return;
         });
+        return;
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
-app.get('/api/themes/:themeId/posts/:postId', (req, res) => {
+app.get('/api/themes/:themeId/posts/:postId', async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        const id = req.params.postId;
-        const post = posts.find((post) => post.id === id);
-        post ? res.status(200).send({post}) : res.status(404).send({
-            status: 404,
-            error: "Not found"
+        const post = await postModel.findOne({ _id: req.params.postId, themeId: req.params.themeId });
+        post ? res.status(200).json(post) : (() => {
+            next(ApiError.notFound("Not found"));
+            return;
         });
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
-app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', (req, res) => {
+app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', async (req, res, next) => {
     try {
-        parseIds(req.params.themeId);
-        parseIds(req.params.postId);
-        parseIds(req.params.commentId);
-        const id = req.params.commentId;
-        const comment = comments.find((comment) => comment.id === id);
-        comment ? res.status(200).send(comment) : res.status(404).send({
-            status: 404,
-            error: "Not found"
+        const comment = await commentModel.findOne({ _id: req.params.commentId, themeId: req.params.themeId, postId: req.params.postId });
+        comment ? res.status(200).json(comment) : (() => {
+            next(ApiError.notFound("Not found"));
+            return;
         });
     } catch {
-        res.status(400).send({
-            status: 400,
-            error: "Invalid URL"
-        });
+        next(ApiError.badRequest("Something went wrong :("));
+        return;
     };
 });
 
@@ -238,6 +224,11 @@ app.post('/api/themes', checkAuth, permissionCheckGeneric,  async (req, res, nex
 
 app.post('/api/themes/:id/posts', checkAuth, permissionCheckGeneric, async (req, res, next) => {
     try {
+        const theme = await themeModel.findOne({ _id: req.params.id })
+        if (!theme) {
+            next(ApiError.notFound("Theme does not exist"));
+            return;
+        }
         const post = new postModel({
             title: req.body.title,
             themeId: req.params.id,
@@ -255,6 +246,16 @@ app.post('/api/themes/:id/posts', checkAuth, permissionCheckGeneric, async (req,
 
 app.post('/api/themes/:themeId/posts/:postId/comments', checkAuth, permissionCheckGeneric, async (req, res, next) => {
     try {
+        const theme = await themeModel.findOne({ _id: req.params.themeId })
+        if (!theme) {
+            next(ApiError.notFound("Theme does not exist"));
+            return;
+        }
+        const post = await postModel.findOne({ _id: req.params.postId });
+        if (!post){
+            next(ApiError.notFound("Post does not exist"));
+            return;
+        }
         const comment = new commentModel({
             userId: req['userData'].userId,
             themeId: req.params.themeId,
