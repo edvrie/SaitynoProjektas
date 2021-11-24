@@ -168,7 +168,7 @@ app.get('/api/themes/:themeId/posts/:postId/comments', async (req, res, next) =>
 // GET BY ID
 app.get('/api/themes/:id', async (req, res, next) => {
     try {
-        const theme = themeModel.findOne({ _id: req.params.id });
+        const theme = await themeModel.findOne({ _id: req.params.id });
         theme ? res.status(200).json(theme) : (() => {
             next(ApiError.notFound("Not found"));
             return;
