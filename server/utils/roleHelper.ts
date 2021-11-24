@@ -32,18 +32,25 @@ export const permissionCheckGeneric = (req, res, next) => {
 
 export const permissionCheckThemes = async (req, res, next) => {
     await getUser(req.userData.userId).then(async (user) => {
-        console.log(user)
         await getTheme(req.params.id).then((theme) => {
-            console.log(theme)
             if ((user.userRole === USER_ROLES.SIMPLE_USER || user.userRole === USER_ROLES.ADMIN) && user !== null && theme !== null) {
-                if (user._id.toString() === theme.userId){
+                if (user._id.toString() === theme.userId || user.userRole === USER_ROLES.ADMIN){
                     next();
+                    return;
+                } else {
+                    next(ApiError.forbidden("You do not have permission for this action"));
                     return;
                 }
             }
-            next(ApiError.forbidden("You do not have permission for this action"));
+            next(ApiError.badRequest("Could not process request"));
+            return;
+        }).catch(() => {
+            next(ApiError.notFound("Cannot find deletable entries"));
             return;
         });
+    }).catch(() => {
+        next(ApiError.badRequest("Could not fetch user data (perhaps you forgot to log in?)"));
+        return;
     });
 }
 
@@ -51,15 +58,19 @@ export const permissionCheckPosts = async (req, res, next) => {
     await getUser(req.userData.userId).then(async (user) => {
         await getPost(req.params.postId).then((post) => {
             if ((user.userRole === USER_ROLES.SIMPLE_USER || user.userRole === USER_ROLES.ADMIN) && user !== null && post !== null) {
-                if (user._id.toString() === post.userId){
+                if (user._id.toString() === post.userId || user.userRole === USER_ROLES.ADMIN){
                     next();
+                    return;
+                } else {
+                    next(ApiError.forbidden("You do not have permission for this action"));
                     return;
                 }
             }
-            next(ApiError.forbidden("You do not have permission for this action"));
+            next(ApiError.badRequest("Could not process request"));
             return;
+
         }).catch(() => {
-            next(ApiError.badRequest("Could not fetch user data (perhaps you forgot to log in?)"));
+            next(ApiError.notFound("Cannot find deletable entries"));
             return;
         });
     }).catch(() => {
@@ -72,15 +83,19 @@ export const permissionCheckComments = async (req, res, next) => {
     await getUser(req.userData.userId).then(async (user) => {
         await getComment(req.params.commentId).then((comment) => {
             if ((user.userRole === USER_ROLES.SIMPLE_USER || user.userRole === USER_ROLES.ADMIN) && user !== null && comment !== null) {
-                if (user._id.toString() === comment.userId){
+                if (user._id.toString() === comment.userId || user.userRole === USER_ROLES.ADMIN){
                     next();
+                    return;
+                } else {
+                    next(ApiError.forbidden("You do not have permission for this action"));
                     return;
                 }
             }
-            next(ApiError.forbidden("You do not have permission for this action"));
+            next(ApiError.badRequest("Could not process request"));
             return;
+
         }).catch(() => {
-            next(ApiError.badRequest("Could not fetch user data (perhaps you forgot to log in?)"));
+            next(ApiError.notFound("Cannot find deletable entries"));
             return;
         });;
     }).catch(() => {

@@ -11,6 +11,7 @@ import { checkAuth } from './auth';
 import { apiErrorHelper } from '../utils/errorHelper';
 import ApiError from '../utils/ApiError';
 import { permissionCheckGeneric, permissionCheckThemes, permissionCheckPosts, permissionCheckComments, permissionCheckAdmin, USER_ROLES } from '../utils/roleHelper';
+import { validateId } from '../utils/userInfoGetter';
 
 //Config
 dotenv.config({ path: './config/config.env' });
@@ -144,7 +145,7 @@ app.get('/api/themes', async (req, res, next) => {
     };
 });
 
-app.get('/api/themes/:id/posts', async (req, res, next) => {
+app.get('/api/themes/:id/posts', validateId, async (req, res, next) => {
     try {
         const posts = await postModel.find({ themeId: req.params.id });
         res.status(200).json(posts);
@@ -155,7 +156,7 @@ app.get('/api/themes/:id/posts', async (req, res, next) => {
     };
 });
 
-app.get('/api/themes/:themeId/posts/:postId/comments', async (req, res, next) => {
+app.get('/api/themes/:themeId/posts/:postId/comments', validateId, async (req, res, next) => {
     try {
         const comments = await commentModel.find({ themeId: req.params.themeId, postId: req.params.postId });
         res.status(200).json(comments);
@@ -166,7 +167,7 @@ app.get('/api/themes/:themeId/posts/:postId/comments', async (req, res, next) =>
 });
 
 // GET BY ID
-app.get('/api/themes/:id', async (req, res, next) => {
+app.get('/api/themes/:id', validateId, async (req, res, next) => {
     try {
         const theme = await themeModel.findOne({ _id: req.params.id });
         theme ? res.status(200).json(theme) : (() => {
@@ -180,7 +181,7 @@ app.get('/api/themes/:id', async (req, res, next) => {
     };
 });
 
-app.get('/api/themes/:themeId/posts/:postId', async (req, res, next) => {
+app.get('/api/themes/:themeId/posts/:postId', validateId, async (req, res, next) => {
     try {
         const post = await postModel.findOne({ _id: req.params.postId, themeId: req.params.themeId });
         post ? res.status(200).json(post) : (() => {
@@ -193,7 +194,7 @@ app.get('/api/themes/:themeId/posts/:postId', async (req, res, next) => {
     };
 });
 
-app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', async (req, res, next) => {
+app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', validateId, async (req, res, next) => {
     try {
         const comment = await commentModel.findOne({ _id: req.params.commentId, themeId: req.params.themeId, postId: req.params.postId });
         comment ? res.status(200).json(comment) : (() => {
@@ -222,7 +223,7 @@ app.post('/api/themes', checkAuth, permissionCheckGeneric,  async (req, res, nex
     };
 });
 
-app.post('/api/themes/:id/posts', checkAuth, permissionCheckGeneric, async (req, res, next) => {
+app.post('/api/themes/:id/posts', validateId, checkAuth, permissionCheckGeneric, async (req, res, next) => {
     try {
         const theme = await themeModel.findOne({ _id: req.params.id })
         if (!theme) {
@@ -244,7 +245,7 @@ app.post('/api/themes/:id/posts', checkAuth, permissionCheckGeneric, async (req,
     };
 });
 
-app.post('/api/themes/:themeId/posts/:postId/comments', checkAuth, permissionCheckGeneric, async (req, res, next) => {
+app.post('/api/themes/:themeId/posts/:postId/comments', validateId, checkAuth, permissionCheckGeneric, async (req, res, next) => {
     try {
         const theme = await themeModel.findOne({ _id: req.params.themeId })
         if (!theme) {
@@ -272,7 +273,7 @@ app.post('/api/themes/:themeId/posts/:postId/comments', checkAuth, permissionChe
 });
 
 // PUT
-app.patch('/api/themes/:id', checkAuth, permissionCheckThemes, async (req, res, next) => {
+app.patch('/api/themes/:id', validateId, checkAuth, permissionCheckThemes, async (req, res, next) => {
     try {
         await themeModel.updateOne({ _id: req.params.id }, req.body);
         res.status(200).json("Ok");
@@ -283,7 +284,7 @@ app.patch('/api/themes/:id', checkAuth, permissionCheckThemes, async (req, res, 
     };
 });
 
-app.patch('/api/themes/:themeId/posts/:postId', checkAuth, permissionCheckPosts, async (req, res, next) => {
+app.patch('/api/themes/:themeId/posts/:postId', validateId, checkAuth, permissionCheckPosts, async (req, res, next) => {
     try {
         await postModel.updateOne({ _id: req.params.postId }, req.body);
         res.status(200).json("Ok");
@@ -294,7 +295,7 @@ app.patch('/api/themes/:themeId/posts/:postId', checkAuth, permissionCheckPosts,
     };
 });
 
-app.patch('/api/themes/:themeId/posts/:postId/comments/:commentId', checkAuth, permissionCheckComments, async (req, res, next) => {
+app.patch('/api/themes/:themeId/posts/:postId/comments/:commentId', validateId, checkAuth, permissionCheckComments, async (req, res, next) => {
     try {
        await commentModel.updateOne({ _id: req.params.commentId }, req.body);
        res.status(200).json("Ok");
@@ -306,7 +307,7 @@ app.patch('/api/themes/:themeId/posts/:postId/comments/:commentId', checkAuth, p
 });
 
 // DELETE
-app.delete('/api/themes/:id', checkAuth, permissionCheckThemes, async (req, res, next) => {
+app.delete('/api/themes/:id', validateId, checkAuth, permissionCheckThemes, async (req, res, next) => {
     try{
         await themeModel.deleteOne({ _id: req.params.id });
         await postModel.deleteMany({ themeId: req.params.id });
@@ -319,7 +320,7 @@ app.delete('/api/themes/:id', checkAuth, permissionCheckThemes, async (req, res,
     }
 });
 
-app.delete('/api/themes/:themeId/posts/:postId', checkAuth, permissionCheckPosts, async (req, res, next) => {
+app.delete('/api/themes/:themeId/posts/:postId', validateId, checkAuth, permissionCheckPosts, async (req, res, next) => {
     try {
         await postModel.deleteOne({ _id: req.params.postId, themeId: req.params.themeId });
         await commentModel.deleteMany({ postId: req.params.postId, themeId: req.params.themeId });
@@ -331,7 +332,7 @@ app.delete('/api/themes/:themeId/posts/:postId', checkAuth, permissionCheckPosts
     };
 });
 
-app.delete('/api/themes/:themeId/posts/:postId/comments/:commentId', checkAuth, permissionCheckComments, async (req, res, next) => {
+app.delete('/api/themes/:themeId/posts/:postId/comments/:commentId', validateId, checkAuth, permissionCheckComments, async (req, res, next) => {
     try {
         await commentModel.deleteOne({ _id: req.params.commentId, themeId: req.params.themeId, postId: req.params.postId });
         res.status(200).json("Ok");
