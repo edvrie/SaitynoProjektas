@@ -170,10 +170,7 @@ app.get('/api/themes/:themeId/posts/:postId/comments', validateId, async (req, r
 app.get('/api/themes/:id', validateId, async (req, res, next) => {
     try {
         const theme = await themeModel.findOne({ _id: req.params.id });
-        theme ? res.status(200).json(theme) : (() => {
-            next(ApiError.notFound("Not found"));
-            return;
-        });
+        res.status(200).json(theme)
         return;
     } catch {
         next(ApiError.badRequest("Something went wrong :("));
@@ -184,10 +181,8 @@ app.get('/api/themes/:id', validateId, async (req, res, next) => {
 app.get('/api/themes/:themeId/posts/:postId', validateId, async (req, res, next) => {
     try {
         const post = await postModel.findOne({ _id: req.params.postId, themeId: req.params.themeId });
-        post ? res.status(200).json(post) : (() => {
-            next(ApiError.notFound("Not found"));
-            return;
-        });
+        res.status(200).json(post);
+        return;
     } catch {
         next(ApiError.badRequest("Something went wrong :("));
         return;
@@ -197,10 +192,8 @@ app.get('/api/themes/:themeId/posts/:postId', validateId, async (req, res, next)
 app.get('/api/themes/:themeId/posts/:postId/comments/:commentId', validateId, async (req, res, next) => {
     try {
         const comment = await commentModel.findOne({ _id: req.params.commentId, themeId: req.params.themeId, postId: req.params.postId });
-        comment ? res.status(200).json(comment) : (() => {
-            next(ApiError.notFound("Not found"));
-            return;
-        });
+        res.status(200).json(comment);
+        return;
     } catch {
         next(ApiError.badRequest("Something went wrong :("));
         return;
