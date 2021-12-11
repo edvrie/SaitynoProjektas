@@ -121,6 +121,9 @@ app.post('/login', async (req, res, next) => {
                     expiresIn: "1h"
                 });
                 return res.status(201).json({
+                    username: user.username,
+                    email: user.email,
+                    userId: user._id,
                     message: "Login successful",
                     authToken: token
                 })
