@@ -41,48 +41,6 @@ app.use((err, req, res, next) => {
 
 connectDB();
 
-const themes = [
-    {
-        id: 1,
-        title: "Science",
-        activeDiscusions: 10
-    },
-    {
-        id: 2,
-        title: "Memes",
-        activeDiscusions: 2
-    },
-    {
-        id: 3,
-        title: "Sports",
-        activeDiscusions: 5
-    }
-];
-
-const posts = [
-    {
-        id: "751213",
-        user: "Tom",
-        text: "How do I close VIM?"
-    }
-];
-
-const comments = [
-    {
-        id: "4887",
-        postId: "751213",
-        userId: "48753asee",
-        text: "This is true"
-    }
-];
-
-const parseIds = (id: string) => {
-    const idInt = Number(id);
-    if (isNaN(idInt)) {
-        throw new Error("Invalid URL");
-    }
-};
-
 // AUTH 
 app.post('/signup', async (req, res, next) => {
     const hashedPswrd = await bcrypt.hash(req.body.password, 10);
@@ -94,7 +52,11 @@ app.post('/signup', async (req, res, next) => {
     });
     try{
         await user.save();
-        res.status(201).send(user);
+        res.status(201).send({
+            email: user.email,
+            userId: user._id,
+            username: user.username
+        });
     } catch (err) {
         next(ApiError.badRequest("Something went wrong :("));
     };
