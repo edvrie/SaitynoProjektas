@@ -87,7 +87,8 @@ app.post('/login', async (req, res, next) => {
                     email: user.email,
                     userId: user._id,
                     message: "Login successful",
-                    authToken: token
+                    authToken: token,
+                    userRole: user.userRole
                 })
             }
         });
