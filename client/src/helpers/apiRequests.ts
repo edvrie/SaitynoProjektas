@@ -138,3 +138,53 @@ export const patchPost = async (themeId: string, postId: string, title: string, 
         console.log(err);
     }
 }
+
+export const fetchComments = async (themeId: string, postId: string) => {
+    try {
+        const response = await axios({
+            url: `${URL}/themes/${themeId}/posts/${postId}/comments`,
+            method: 'GET'
+        });
+        return response;
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export const fetchComment = async (themeId: string, postId: string, commentId: string) => {
+    try {
+        const response = await axios({
+            url: `${URL}/themes/${themeId}/posts/${postId}/comments/${commentId}`,
+            method: 'GET'
+        })
+        return response;
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export const postComment = async (themeId: string, postId: string, content: string) => {
+    try {
+        await axios.post(`${URL}/themes/${themeId}/posts/${postId}/comments`, {content: content});
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export const patchComment = async (themeId: string, postId: string, commentId: string, content: string) => {
+    try {
+        await axios.patch(`${URL}/themes/${themeId}/posts/${postId}/comments/${commentId}`, {
+            content: content
+        })
+    } catch (err) {
+        console.log(err)
+    }
+}
+
+export const deleteComment = async (themeId: string, postId: string, commentId: string) => {
+    try {
+        axios.delete(`${URL}/themes/${themeId}/posts/${postId}/comments/${commentId}`);
+    } catch (err) {
+        console.log(err);
+    }
+}

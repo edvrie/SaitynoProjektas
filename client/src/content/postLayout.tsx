@@ -1,11 +1,11 @@
 import { DeleteOutlined, EditOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, Modal, Popconfirm, Typography } from "antd";
-import { useForm } from "antd/lib/form/Form";
 import TextArea from "antd/lib/input/TextArea";
 import { isEmpty } from "ramda";
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { deletePost, fetchPost, fetchPosts, patchPost } from "../helpers/apiRequests";
+import { deletePost, fetchPost, patchPost } from "../helpers/apiRequests";
+import CommentLayout from "./commentLayout";
 
 interface POST_DATA {
     _id: string;
@@ -64,6 +64,7 @@ const PostLayout: React.FunctionComponent<Props> = ({ user }) => {
                 <Typography.Text ellipsis={false}>{post?.content}</Typography.Text>
             </Card>
         )}
+        <CommentLayout user={user} />
         </>
     )
 }
