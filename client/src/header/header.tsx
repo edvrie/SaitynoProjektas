@@ -6,6 +6,7 @@ import SignUpButton from './signup';
 import { Avatar, Popover } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { userContext } from '../helpers/userManagement';
+import { Link } from 'react-router-dom';
 
 interface Props {
     user?: object;
@@ -28,7 +29,7 @@ const HeaderCustom: React.FunctionComponent<Props> = (props) => {
     return(
         <>
         <div className="float-left">
-            <p className="text-white font-mono" style={{fontSize: 'xx-large'}}>Forum</p>
+            <p className="text-white font-mono" style={{fontSize: 'xx-large'}}><Link to={`/`}>Forum</Link></p>
         </div>
             <div className="float-right">
                 {isEmpty(props.user) ? (

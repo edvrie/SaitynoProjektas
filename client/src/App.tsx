@@ -7,6 +7,7 @@ import 'antd/dist/antd.css';
 import LayoutCustom from './content/layout';
 import { getUserData, userContext } from './helpers/userManagement';
 import PostLayout from './content/postLayout';
+import HomePage from './content/home';
 
 function App() {
   const { Header, Footer, Content } = Layout;
@@ -32,11 +33,12 @@ function App() {
       </Header>
       <Content style={{ padding: '0 50px', marginTop: 64, overflow: 'hidden'}} >
       <Routes>
+          <Route path='/' element={<HomePage />} />
           <Route path='/themes' element={<LayoutCustom user={userData} />} />
           <Route path='/themes/:themeId/posts/:postId' element={<PostLayout user={userData}/>} />
       </Routes>
       </Content>
-      <Footer>
+      <Footer style={{marginTop: '22%'}}>
           <p>© Edvinas Riepšas IFF-8/12</p>
        </Footer>
        </Space>
